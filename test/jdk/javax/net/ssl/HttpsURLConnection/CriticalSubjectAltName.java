@@ -80,6 +80,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 
+import jdk.test.lib.Utils;
 import jdk.test.lib.security.SecurityUtils;
 
 public class CriticalSubjectAltName implements HostnameVerifier {
@@ -213,20 +214,44 @@ public class CriticalSubjectAltName implements HostnameVerifier {
     volatile Exception clientException = null;
 
     public static void main(String[] args) throws Exception {
-        if (args[1].contains("MD5")) {
-            SecurityUtils.removeFromDisabledAlgs(
-                    "jdk.certpath.disabledAlgorithms", List.of("MD5"));
-            SecurityUtils.removeFromDisabledTlsAlgs("MD5");
+        if (!(SecurityUtils.isFIPS())) {
+            if (args[1].contains("MD5")) {
+                SecurityUtils.removeFromDisabledAlgs(
+                        "jdk.certpath.disabledAlgorithms", List.of("MD5"));
+                SecurityUtils.removeFromDisabledTlsAlgs("MD5");
+            }
         }
 
         if (debug) {
             System.setProperty("javax.net.debug", "all");
         }
 
-        /*
-         * Start the tests.
-         */
-        new CriticalSubjectAltName(args[0], args[1]);
+        try {
+            /*
+            * Start the tests.
+            */
+            new CriticalSubjectAltName(args[0], args[1]);
+        } catch (Exception e) {
+            if (SecurityUtils.isFIPS()) {
+                if (e instanceof java.security.cert.CertPathValidatorException) {
+                    if ("Algorithm constraints check failed on signature algorithm: MD5withRSA".equals(e.getMessage())) {
+                        System.out.println("MD5withRSA is not a supported signature algorithm.");
+                        return;
+                    } else {
+                        System.out.println("Unexpected exception msg: <" + e.getMessage() + "> is caught");
+                        return;
+                    }
+                } else {
+                    System.out.println("Unexpected exception is caught");
+                    e.printStackTrace();
+                    return;
+                }
+            } else {
+                System.out.println("Unexpected exception is caught in Non-FIPS mode");
+                e.printStackTrace();
+                return;
+            }
+        }
     }
 
     Thread clientThread = null;
