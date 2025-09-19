@@ -202,6 +202,19 @@ abstract public class SSLEngineTestCase {
             }
             SUPPORTED_NON_KRB_CIPHERS =
                     supportedCiphersList.toArray(new String[0]);
+        } catch (NoSuchAlgorithmException nsae) {
+            if (ISFIPS) {
+                if (!(TESTED_SECURITY_PROTOCOL.equals("DTLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.3")))
+                {
+                    throw new NoSuchAlgorithmException("Expected unsupported protocol in FIPS: " + TESTED_SECURITY_PROTOCOL, nsae);
+                } else {
+                    throw new Error("Unexpected exception", nsae);
+                }
+            } else {
+                throw new Error("Unexpected exception", nsae);
+            }
         } catch (Exception ex) {
             throw new Error("Unexpected issue", ex);
         }
@@ -225,6 +238,19 @@ abstract public class SSLEngineTestCase {
             }
             SUPPORTED_NON_KRB_NON_SHA_CIPHERS
                     = supportedCiphersList.toArray(new String[0]);
+        } catch (NoSuchAlgorithmException nsae) {
+            if (ISFIPS) {
+                if (!(TESTED_SECURITY_PROTOCOL.equals("DTLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.3")))
+                {
+                    throw new NoSuchAlgorithmException("Expected unsupported protocol in FIPS: " + TESTED_SECURITY_PROTOCOL, nsae);
+                } else {
+                    throw new Error("Unexpected exception", nsae);
+                }
+            } else {
+                throw new Error("Unexpected exception", nsae);
+            }
         } catch (Exception ex) {
             throw new Error("Unexpected issue", ex);
         }
@@ -245,6 +271,19 @@ abstract public class SSLEngineTestCase {
                 }
             }
             SUPPORTED_KRB_CIPHERS = supportedCiphersList.toArray(new String[0]);
+        } catch (NoSuchAlgorithmException nsae) {
+            if (ISFIPS) {
+                if (!(TESTED_SECURITY_PROTOCOL.equals("DTLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.3")))
+                {
+                    throw new NoSuchAlgorithmException("Expected unsupported protocol in FIPS: " + TESTED_SECURITY_PROTOCOL, nsae);
+                } else {
+                    throw new Error("Unexpected exception", nsae);
+                }
+            } else {
+                throw new Error("Unexpected exception", nsae);
+            }
         } catch (Exception ex) {
             throw new Error("Unexpected issue", ex);
         }
@@ -820,7 +859,20 @@ abstract public class SSLEngineTestCase {
                     SSLContext.getInstance(TESTED_SECURITY_PROTOCOL);
             sslCtx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
             return sslCtx;
-        } catch (KeyStoreException | IOException | NoSuchAlgorithmException |
+        } catch (NoSuchAlgorithmException nsae) {
+            if (ISFIPS) {
+                if (!(TESTED_SECURITY_PROTOCOL.equals("DTLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.2") ||
+                    TESTED_SECURITY_PROTOCOL.equals("TLSv1.3")))
+                {
+                    throw new NoSuchAlgorithmException("Expected unsupported protocol in FIPS: " + TESTED_SECURITY_PROTOCOL, nsae);
+                } else {
+                    throw new Error("Unexpected exception", nsae);
+                }
+            } else {
+                throw new Error("Unexpected exception", nsae);
+            }
+        } catch (KeyStoreException | IOException |
                 CertificateException | UnrecoverableKeyException |
                 KeyManagementException ex) {
             throw new Error("Unexpected exception", ex);
