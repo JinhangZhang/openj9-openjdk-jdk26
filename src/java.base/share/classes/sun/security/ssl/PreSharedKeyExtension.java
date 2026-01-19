@@ -35,6 +35,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.HKDFParameterSpec;
 import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLProtocolException;
+
 import static sun.security.ssl.ClientAuthType.CLIENT_AUTH_REQUIRED;
 import sun.security.ssl.ClientHello.ClientHelloMessage;
 import sun.security.ssl.SSLExtension.ExtensionConsumer;
@@ -662,6 +663,14 @@ final class PreSharedKeyExtension {
             // Make sure the list of supported signature algorithms matches
             Collection<SignatureScheme> sessionSigAlgs =
                 chc.resumingSession.getLocalSupportedSignatureSchemes();
+
+            if (SSLLogger.isOn() && SSLLogger.isOn("ssl,handshake")) {
+                SSLLogger.fine("===== PSK SignatureScheme Compare =====");
+                SSLLogger.fine(dumpSchemes("sessionSigAlgs (from resumingSession)",
+                        sessionSigAlgs));
+                SSLLogger.fine(dumpSchemes("localSupportedCertSignAlgs (current context)",
+                        chc.localSupportedCertSignAlgs));
+            }
             if (!chc.localSupportedCertSignAlgs.containsAll(sessionSigAlgs)) {
                 if (SSLLogger.isOn() && SSLLogger.isOn("ssl,handshake")) {
                     SSLLogger.fine("Existing session uses different " +
@@ -956,4 +965,30 @@ final class PreSharedKeyExtension {
             return psk.getEncoded();
         }
     }
+
+    private static String dumpSchemes(String tag, Collection<SignatureScheme> schemes) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(tag).append(" = [");
+
+        if (schemes == null) {
+            sb.append("null]");
+            return sb.toString();
+        }
+
+        boolean first = true;
+        for (SignatureScheme ss : schemes) {
+            if (!first) sb.append(", ");
+            first = false;
+
+            // 只打印最稳定、跨版本一定存在的字段
+            sb.append(ss.name())
+            .append("(0x")
+            .append(String.format("%04x", ss.id))
+            .append(")");
+        }
+
+        sb.append("]");
+        return sb.toString();
+    }
+
 }

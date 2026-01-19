@@ -110,6 +110,9 @@ public class ResumeTLS13withSNI {
         serverEngine.setSSLParameters(servSSLParams);
 
         initialHandshake(clientEngine, serverEngine);
+        System.err.println("\n===== AFTER INITIAL HANDSHAKE (OLD SESSION) =====");
+        printSessionSignatureSchemes(clientEngine.getSession(), "OLD SESSION");
+
 
         // Create a new client-side engine which can initiate TLS session
         // resumption
@@ -276,6 +279,9 @@ public class ResumeTLS13withSNI {
         // Start by having the client create a new ClientHello.  It should
         // contain PSK info that allows it to attempt session resumption.
         try {
+            System.err.println("\n===== BEFORE RESUMPTION HANDSHAKE (NEW ENGINE) =====");
+            printEngineSignatureSchemes(clientEngine, "NEW HANDSHAKE");
+
             clientResult = clientEngine.wrap(clientOut, cTOs);
             log("client wrap: ", clientResult);
         } catch (Exception e) {
@@ -590,6 +596,55 @@ public class ResumeTLS13withSNI {
         }
         System.err.println();
         data.reset();
+    }
+
+    private static void printSessionSignatureSchemes(SSLSession session, String tag) {
+        System.err.println("[" + tag + "] SSLSession class = " + session.getClass());
+
+        if (session instanceof javax.net.ssl.ExtendedSSLSession) {
+            javax.net.ssl.ExtendedSSLSession es =
+                    (javax.net.ssl.ExtendedSSLSession) session;
+
+            String[] local = es.getLocalSupportedSignatureAlgorithms();
+            String[] peer  = es.getPeerSupportedSignatureAlgorithms();
+
+            System.err.println("[" + tag + "] Local Supported Signature Schemes:");
+            if (local != null) {
+                for (String s : local) {
+                    System.err.println("    " + s);
+                }
+            } else {
+                System.err.println("    (null)");
+            }
+
+            System.err.println("[" + tag + "] Peer Supported Signature Schemes:");
+            if (peer != null) {
+                for (String s : peer) {
+                    System.err.println("    " + s);
+                }
+            } else {
+                System.err.println("    (null)");
+            }
+        } else {
+            System.err.println("[" + tag + "] Session is NOT ExtendedSSLSession");
+        }
+    }
+
+    private static void printEngineSignatureSchemes(SSLEngine engine, String tag) {
+        SSLParameters params = engine.getSSLParameters();
+
+        System.err.println("[" + tag + "] SSLParameters.signatureSchemes = ");
+        String[] sigs = params.getSignatureSchemes();
+        if (sigs != null) {
+            for (String s : sigs) {
+                System.err.println("    " + s);
+            }
+        } else {
+            System.err.println("    (null = use default)");
+        }
+
+        // 还顺便打印 session 里当前已有的（如果有）
+        printSessionSignatureSchemes(engine.getSession(), tag + " (SESSION VIEW)");
     }
 
 }
