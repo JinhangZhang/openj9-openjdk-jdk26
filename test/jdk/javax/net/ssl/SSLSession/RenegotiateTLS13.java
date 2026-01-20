@@ -148,6 +148,7 @@ public class RenegotiateTLS13 {
             System.setProperty("javax.net.debug", "ssl");
 
         new RenegotiateTLS13();
+        System.out.println(1/0);
     }
 
     Thread clientThread = null;
