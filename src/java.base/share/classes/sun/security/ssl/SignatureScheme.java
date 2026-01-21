@@ -508,6 +508,16 @@ enum SignatureScheme {
                             "Unsupported signature scheme: " +
                             SignatureScheme.nameOf(ssid));
                 }
+            } else if (config.signatureSchemes == SupportedSigSchemes.DEFAULT) {
+                if (ss != ECDSA_BRAINPOOLP512R1TLS13_SHA512) {
+                    supported.add(ss);
+                } else {
+                    if (SSLLogger.isOn() &&
+                            SSLLogger.isOn("ssl,handshake,verbose")) {
+                        SSLLogger.finest("Ignore " + ECDSA_BRAINPOOLP512R1TLS13_SHA512.name
+                                + " from supported signature schemes as well");
+                    }
+                }
             } else if ((config.signatureSchemes == SupportedSigSchemes.DEFAULT
                     || Utilities.contains(config.signatureSchemes, ss.name))
                     && ss.isAllowed(constraints, protocolVersion, scopes)) {
